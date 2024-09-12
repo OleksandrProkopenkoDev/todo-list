@@ -1,0 +1,106 @@
+@startuml
+
+package "Entities" {
+  class User {
+    Long id
+    String username
+    String password
+    String email
+    Set<Task> tasks
+  }
+
+  class Task {
+    Long id
+    String title
+    String description
+    LocalDateTime dueDate
+    boolean completed
+    User user
+    Set<FileAttachment> attachments
+  }
+
+  class FileAttachment {
+    Long id
+    String fileName
+    byte[] data
+    String contentType
+    Task task
+  }
+}
+
+package "DTOs" {
+  class UserDTO {
+    String username
+    String password
+    String email
+  }
+
+  class TaskDTO {
+    String title
+    String description
+    LocalDateTime dueDate
+    boolean completed
+    Set<FileAttachmentDTO> attachments
+  }
+
+  class FileAttachmentDTO {
+    String fileName
+    byte[] data
+    String contentType
+  }
+}
+
+package "Controllers" {
+  class UserController {
+    + registerUser(UserDTO user)
+    + loginUser()
+  }
+
+  class TaskController {
+    + createTask(TaskDTO task)
+    + viewTasks()
+    + updateTask(Long taskId, TaskDTO task)
+    + deleteTask(Long taskId)
+  }
+}
+
+package "Services" {
+  class UserService {
+    + register(UserDTO user)
+    + findUserByUsername(String username)
+  }
+
+  class TaskService {
+    + createTask(TaskDTO task)
+    + findTasksByUser()
+    + updateTask(Long taskId, TaskDTO task)
+    + deleteTask(Long taskId)
+  }
+
+  class FileService {
+    + uploadFile(FileAttachmentDTO file)
+    + downloadFile(Long fileId)
+  }
+}
+
+package "Repositories" {
+  class UserRepository {
+    + save(User user)
+    + findByUsername(String username)
+  }
+
+  class TaskRepository {
+    + save(Task task)
+    + findByUser(User user)
+  }
+
+  class FileRepository {
+    + save(FileAttachment file)
+    + findByTask(Task task)
+  }
+}
+
+User "1" --> "0..*" Task
+Task "1" --> "0..*" FileAttachment
+
+@enduml
