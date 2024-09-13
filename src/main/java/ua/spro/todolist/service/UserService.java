@@ -1,9 +1,9 @@
 package ua.spro.todolist.service;
 
 import ua.spro.todolist.model.dto.RegistrationRequest;
-import ua.spro.todolist.model.entity.User;
+import ua.spro.todolist.model.dto.UserDto;
 
 public interface UserService {
 
-  User registerNewUser(RegistrationRequest request);
+  UserDto registerNewUser(RegistrationRequest request);
 }
