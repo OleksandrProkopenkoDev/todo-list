@@ -1,5 +1,6 @@
 package ua.spro.todolist.controller;
 
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ua.spro.todolist.model.dto.CreateTaskRequest;
 import ua.spro.todolist.model.dto.TaskDto;
@@ -29,8 +31,8 @@ public class TaskController {
   }
 
   @GetMapping
-  public Set<TaskDto> viewTasks() {
-    return taskService.findTasksByUser();
+  public Set<TaskDto> getTasks(@RequestParam Map<String, String> params) {
+    return taskService.viewTasksWithFilters(params);
   }
 
   @PutMapping("/{taskId}")

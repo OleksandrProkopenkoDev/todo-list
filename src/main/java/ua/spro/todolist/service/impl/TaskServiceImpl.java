@@ -2,10 +2,12 @@ package ua.spro.todolist.service.impl;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +26,7 @@ import ua.spro.todolist.repository.FileRepository;
 import ua.spro.todolist.repository.TaskRepository;
 import ua.spro.todolist.repository.UserRepository;
 import ua.spro.todolist.service.TaskService;
+import ua.spro.todolist.specification.TaskSpecification;
 
 @Slf4j
 @Service
@@ -50,9 +53,14 @@ public class TaskServiceImpl implements TaskService {
 
   @Override
   @Transactional(readOnly = true)
-  public Set<TaskDto> findTasksByUser() {
-    User currentUser = getCurrentUser();
-    Set<Task> tasks = taskRepository.findByUser(currentUser);
+  public Set<TaskDto> viewTasksWithFilters(Map<String, String> params) {
+    User currentUser = getCurrentUser(); // Fetch current logged-in user
+
+    // Build dynamic specification using filter params
+    Specification<Task> specification =
+        Specification.where(TaskSpecification.filterByParams(params))
+            .and((root, query, cb) -> cb.equal(root.get("user"), currentUser));
+    Set<Task> tasks = new HashSet<>(taskRepository.findAll(specification));
     return TaskMapper.toDtoSet(tasks);
   }
 
