@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ua.spro.todolist.model.dto.CreateTaskRequest;
@@ -26,29 +25,22 @@ public class TaskController {
 
   @PostMapping
   public TaskDto createTask(@ModelAttribute CreateTaskRequest taskDto) {
-     return taskService.createTask(taskDto);
+    return taskService.createTask(taskDto);
   }
 
   @GetMapping
-  public ResponseEntity<Set<TaskDto>> viewTasks() {
-    Set<TaskDto> tasks = taskService.findTasksByUser();
-    return ResponseEntity.ok(tasks);
+  public Set<TaskDto> viewTasks() {
+    return taskService.findTasksByUser();
   }
 
   @PutMapping("/{taskId}")
-  public TaskDto updateTask(
-      @PathVariable Long taskId, @ModelAttribute UpdateTaskRequest request) {
+  public TaskDto updateTask(@PathVariable Long taskId, @ModelAttribute UpdateTaskRequest request) {
     return taskService.updateTask(taskId, request);
   }
 
   @DeleteMapping("/{taskId}")
-  public ResponseEntity<String> deleteTask(@PathVariable Long taskId) {
+  public ResponseEntity<Void> deleteTask(@PathVariable Long taskId) {
     taskService.deleteTask(taskId);
-    return ResponseEntity.ok("Task deleted successfully");
-  }
-
-  @GetMapping("/demo")
-  public String demo() {
-    return "Hello World";
+    return ResponseEntity.noContent().build();
   }
 }

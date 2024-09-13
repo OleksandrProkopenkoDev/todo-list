@@ -59,10 +59,7 @@ public class TaskServiceImpl implements TaskService {
   @Override
   @Transactional
   public TaskDto updateTask(Long taskId, UpdateTaskRequest request) {
-    Task task =
-        taskRepository
-            .findById(taskId)
-            .orElseThrow(() -> new RuntimeException("Task %s not found".formatted(taskId)));
+    Task task = getTask(taskId);
     // Remove existing attachments
     Set<FileAttachment> oldAttachments = new HashSet<>(task.getAttachments());
     task.getAttachments().clear(); // This marks the attachments for deletion
@@ -80,10 +77,15 @@ public class TaskServiceImpl implements TaskService {
   @Override
   @Transactional
   public void deleteTask(Long taskId) {
-    Task task =
-        taskRepository.findById(taskId).orElseThrow(() -> new RuntimeException("Task not found"));
+    Task task = getTask(taskId);
 
     taskRepository.delete(task);
+  }
+
+  private Task getTask(Long taskId) {
+    return taskRepository
+        .findById(taskId)
+        .orElseThrow(() -> new RuntimeException("Task %s not found".formatted(taskId)));
   }
 
   private User getCurrentUser() {
