@@ -239,7 +239,6 @@ public class TaskServiceImplTest {
       UpdateTaskRequest updateRequest =
           new UpdateTaskRequest(
               "New Title", "New Description", null, true, Set.of(mock(MultipartFile.class)));
-      User user = new User(1L, "testUser", "password", new HashSet<>());
 
       when(taskRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -345,9 +344,6 @@ public class TaskServiceImplTest {
     @Test
     public void deleteTask_shouldThrowRuntimeException_whenTaskNotFound() {
       // Arrange
-      User user = new User(2L, "anotherUser", "password", new HashSet<>());
-      Task existingTask =
-          new Task(1L, "Task Title", "Task Description", null, false, user, new HashSet<>());
 
       when(taskRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -440,9 +436,6 @@ public class TaskServiceImplTest {
     @Test
     public void getFileAttachmentsByTask_shouldThrowRuntimeException_whenTaskNotFound() {
       // Arrange
-      User user = new User(1L, "testUser", "password", new HashSet<>());
-      //
-      // when(userRepository.findByUsername("testUser")).thenReturn(java.util.Optional.of(user));
       when(taskRepository.findById(1L)).thenReturn(java.util.Optional.empty());
 
       // Act & Assert
