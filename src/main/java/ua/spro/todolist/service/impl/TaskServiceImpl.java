@@ -1,14 +1,18 @@
 package ua.spro.todolist.service.impl;
 
+import java.io.IOException;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ua.spro.todolist.model.dto.CreateTaskRequest;
 import ua.spro.todolist.model.dto.TaskDto;
 import ua.spro.todolist.mapper.TaskMapper;
+import ua.spro.todolist.model.entity.FileAttachment;
 import ua.spro.todolist.model.entity.Task;
 import ua.spro.todolist.model.entity.User;
 import ua.spro.todolist.repository.TaskRepository;
@@ -26,18 +30,32 @@ public class TaskServiceImpl implements TaskService {
 
   @Override
   @Transactional
-  public void createTask(TaskDto taskDto) {
+  public TaskDto createTask(CreateTaskRequest taskDto) {
     User currentUser = getCurrentUser(); // Method to get the logged-in user
     Task task = TaskMapper.toEntity(taskDto);
+
+    Set<FileAttachment> fileAttachments =
+        taskDto.attachments().stream()
+            .map(
+                multipartFile -> {
+                  try {
+                    return FileAttachment.builder()
+                        .data(multipartFile.getBytes())
+                        .contentType(multipartFile.getContentType())
+                        .fileName(multipartFile.getOriginalFilename())
+                        .task(task)
+                        .build();
+                  } catch (IOException e) {
+                    throw new RuntimeException(e);
+                  }
+                })
+            .collect(Collectors.toSet());
     task.setUser(currentUser);
+    task.setAttachments(fileAttachments);
 
     // Save task
     Task savedTask = taskRepository.save(task);
-
-    // Handle file attachments
-    if (taskDto.attachments() != null) {
-      taskDto.attachments().forEach(fileService::uploadFile);
-    }
+    return TaskMapper.toDto(savedTask);
   }
 
   @Override

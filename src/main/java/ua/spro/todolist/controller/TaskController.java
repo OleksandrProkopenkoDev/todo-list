@@ -5,12 +5,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ua.spro.todolist.model.dto.CreateTaskRequest;
 import ua.spro.todolist.model.dto.TaskDto;
 import ua.spro.todolist.service.TaskService;
 
@@ -22,9 +24,9 @@ public class TaskController {
   private final TaskService taskService;
 
   @PostMapping
-  public ResponseEntity<String> createTask(@RequestBody TaskDto taskDto) {
-    taskService.createTask(taskDto);
-    return ResponseEntity.ok("Task created successfully");
+  public ResponseEntity<String> createTask(@ModelAttribute CreateTaskRequest taskDto) {
+    TaskDto task = taskService.createTask(taskDto);
+    return ResponseEntity.ok("Task created successfully. %s".formatted(task.title()));
   }
 
   @GetMapping

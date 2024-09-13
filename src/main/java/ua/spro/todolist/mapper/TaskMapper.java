@@ -1,11 +1,23 @@
 package ua.spro.todolist.mapper;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import ua.spro.todolist.model.dto.CreateTaskRequest;
 import ua.spro.todolist.model.dto.TaskDto;
 import ua.spro.todolist.model.entity.Task;
 
 public class TaskMapper {
+
+  public static Task toEntity(CreateTaskRequest taskDto) {
+    return Task.builder()
+        .title(taskDto.title())
+        .description(taskDto.description())
+        .dueDate(taskDto.dueDate())
+        .completed(taskDto.completed())
+        .attachments(new HashSet<>())
+        .build();
+  }
 
   public static Task toEntity(TaskDto taskDto) {
     return Task.builder()

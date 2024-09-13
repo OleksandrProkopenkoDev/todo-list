@@ -1,6 +1,7 @@
 package ua.spro.todolist.model.entity;
 
 import jakarta.persistence.*;
+import java.util.Objects;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -32,4 +33,43 @@ public class Task {
 
   @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<FileAttachment> attachments;
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
+    Task task = (Task) o;
+    return completed == task.completed && Objects.equals(id, task.id) && Objects.equals(title,
+        task.title) && Objects.equals(description, task.description) && Objects.equals(dueDate,
+        task.dueDate);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, title, description, dueDate, completed);
+  }
+
+  @Override
+  public String toString() {
+    return "Task{"
+        + "attachments="
+        + attachments.stream().map(FileAttachment::getFileName).toList()
+        + ", id="
+        + id
+        + ", title='"
+        + title
+        + '\''
+        + ", description='"
+        + description
+        + '\''
+        + ", dueDate="
+        + dueDate
+        + ", completed="
+        + completed
+        + ", user="
+        + user.getUsername()
+        + '}';
+  }
 }
