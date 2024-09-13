@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ua.spro.todolist.model.dto.CreateTaskRequest;
 import ua.spro.todolist.model.dto.TaskDto;
+import ua.spro.todolist.model.dto.UpdateTaskRequest;
 import ua.spro.todolist.service.TaskService;
 
 @RestController
@@ -24,9 +25,8 @@ public class TaskController {
   private final TaskService taskService;
 
   @PostMapping
-  public ResponseEntity<String> createTask(@ModelAttribute CreateTaskRequest taskDto) {
-    TaskDto task = taskService.createTask(taskDto);
-    return ResponseEntity.ok("Task created successfully. %s".formatted(task.title()));
+  public TaskDto createTask(@ModelAttribute CreateTaskRequest taskDto) {
+     return taskService.createTask(taskDto);
   }
 
   @GetMapping
@@ -36,10 +36,9 @@ public class TaskController {
   }
 
   @PutMapping("/{taskId}")
-  public ResponseEntity<String> updateTask(
-      @PathVariable Long taskId, @RequestBody TaskDto taskDto) {
-    taskService.updateTask(taskId, taskDto);
-    return ResponseEntity.ok("Task updated successfully");
+  public TaskDto updateTask(
+      @PathVariable Long taskId, @ModelAttribute UpdateTaskRequest request) {
+    return taskService.updateTask(taskId, request);
   }
 
   @DeleteMapping("/{taskId}")

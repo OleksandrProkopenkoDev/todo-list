@@ -9,18 +9,19 @@ import ua.spro.todolist.model.entity.Task;
 
 public class TaskMapper {
 
-  public static Task toEntity(CreateTaskRequest taskDto) {
+  public static Task toEntity(CreateTaskRequest request) {
     return Task.builder()
-        .title(taskDto.title())
-        .description(taskDto.description())
-        .dueDate(taskDto.dueDate())
-        .completed(taskDto.completed())
+        .title(request.title())
+        .description(request.description())
+        .dueDate(request.dueDate())
+        .completed(request.completed())
         .attachments(new HashSet<>())
         .build();
   }
 
   public static Task toEntity(TaskDto taskDto) {
     return Task.builder()
+        .id(taskDto.id())
         .title(taskDto.title())
         .description(taskDto.description())
         .dueDate(taskDto.dueDate())
@@ -34,6 +35,7 @@ public class TaskMapper {
 
   public static TaskDto toDto(Task task) {
     return new TaskDto(
+        task.getId(),
         task.getTitle(),
         task.getDescription(),
         task.getDueDate(),

@@ -2,12 +2,12 @@ package ua.spro.todolist.model.dto;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import org.springframework.web.multipart.MultipartFile;
 
-public record TaskDto(
-    Long id,
+public record UpdateTaskRequest (
     String title,
     String description,
     LocalDateTime dueDate,
-    boolean completed,
-    Set<FileAttachmentDto> attachments
+    Boolean completed,
+    Set<MultipartFile> attachments
 ) {}

@@ -1,6 +1,7 @@
 package ua.spro.todolist.model.entity;
 
 import jakarta.persistence.*;
+import java.util.HashSet;
 import java.util.Objects;
 import lombok.*;
 
@@ -31,8 +32,8 @@ public class Task {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<FileAttachment> attachments;
+  @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+  private Set<FileAttachment> attachments = new HashSet<>();
 
   @Override
   public boolean equals(Object o) {
