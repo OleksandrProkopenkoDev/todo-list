@@ -68,9 +68,10 @@ public class TaskServiceImpl implements TaskService {
   @Override
   @Transactional
   public TaskDto updateTask(Long taskId, UpdateTaskRequest request) {
+    Task task = getTask(taskId);
+
     isUserOwnerOfThisTask(taskId);
 
-    Task task = getTask(taskId);
     // Remove existing attachments
     Set<FileAttachment> oldAttachments = new HashSet<>(task.getAttachments());
     task.getAttachments().clear(); // This marks the attachments for deletion
@@ -88,17 +89,17 @@ public class TaskServiceImpl implements TaskService {
   @Override
   @Transactional
   public void deleteTask(Long taskId) {
-    isUserOwnerOfThisTask(taskId);
-
     Task task = getTask(taskId);
+
+    isUserOwnerOfThisTask(taskId);
 
     taskRepository.delete(task);
   }
 
   @Override
   public List<byte[]> getFileAttachmentsByTask(Long taskId) {
-    isUserOwnerOfThisTask(taskId);
     Task task = getTask(taskId);
+    isUserOwnerOfThisTask(taskId);
     return task.getAttachments().stream().map(FileAttachment::getData).collect(Collectors.toList());
   }
 

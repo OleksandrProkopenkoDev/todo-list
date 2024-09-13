@@ -9,5 +9,4 @@ public record TaskDto(
     String description,
     LocalDateTime dueDate,
     boolean completed,
-    Set<FileAttachmentDto> attachments
-) {}
+    Set<FileAttachmentDto> attachments) {}
