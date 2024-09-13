@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -43,7 +44,6 @@ public class TaskServiceImpl implements TaskService {
     task.setUser(currentUser);
     task.setAttachments(fileAttachments);
 
-    // Save task
     Task savedTask = taskRepository.save(task);
     return TaskMapper.toDto(savedTask);
   }
@@ -51,7 +51,7 @@ public class TaskServiceImpl implements TaskService {
   @Override
   @Transactional(readOnly = true)
   public Set<TaskDto> findTasksByUser() {
-    User currentUser = getCurrentUser(); // Method to get the logged-in user
+    User currentUser = getCurrentUser();
     Set<Task> tasks = taskRepository.findByUser(currentUser);
     return TaskMapper.toDtoSet(tasks);
   }
@@ -59,6 +59,8 @@ public class TaskServiceImpl implements TaskService {
   @Override
   @Transactional
   public TaskDto updateTask(Long taskId, UpdateTaskRequest request) {
+    isUserOwnerOfThisTask(taskId);
+
     Task task = getTask(taskId);
     // Remove existing attachments
     Set<FileAttachment> oldAttachments = new HashSet<>(task.getAttachments());
@@ -77,9 +79,21 @@ public class TaskServiceImpl implements TaskService {
   @Override
   @Transactional
   public void deleteTask(Long taskId) {
+    isUserOwnerOfThisTask(taskId);
+
     Task task = getTask(taskId);
 
     taskRepository.delete(task);
+  }
+
+  private void isUserOwnerOfThisTask(Long taskId) {
+    User currentUser = getCurrentUser();
+    boolean taskBelongsToCurrentUser =
+        currentUser.getTasks().stream().anyMatch(task -> task.getId().equals(taskId));
+    if (!taskBelongsToCurrentUser) {
+      throw new AccessDeniedException(
+          "You do not have permission to manage this task with id: " + taskId);
+    }
   }
 
   private Task getTask(Long taskId) {
