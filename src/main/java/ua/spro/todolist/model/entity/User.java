@@ -5,6 +5,7 @@ import java.util.Set;
 import lombok.*;
 
 @Entity
+@Table(name = "app_user")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,9 +21,6 @@ public class User {
 
   @Column(nullable = false)
   private String password;
-
-  @Column(nullable = false, unique = true)
-  private String email;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Task> tasks;
