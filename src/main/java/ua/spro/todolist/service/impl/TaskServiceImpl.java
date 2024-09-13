@@ -2,6 +2,7 @@ package ua.spro.todolist.service.impl;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -92,6 +93,13 @@ public class TaskServiceImpl implements TaskService {
     Task task = getTask(taskId);
 
     taskRepository.delete(task);
+  }
+
+  @Override
+  public List<byte[]> getFileAttachmentsByTask(Long taskId) {
+    isUserOwnerOfThisTask(taskId);
+    Task task = getTask(taskId);
+    return task.getAttachments().stream().map(FileAttachment::getData).collect(Collectors.toList());
   }
 
   private void isUserOwnerOfThisTask(Long taskId) {
