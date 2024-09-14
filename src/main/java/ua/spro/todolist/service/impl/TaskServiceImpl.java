@@ -54,8 +54,8 @@ public class TaskServiceImpl implements TaskService {
   @Override
   public TaskDto getTaskById(Long taskId) {
     Task task = getTask(taskId);
-
-    isUserOwnerOfThisTask(taskId);
+    User currentUser = getCurrentUser();
+    isUserOwnerOfThisTask(taskId, currentUser);
 
     return TaskMapper.toDto(task);
   }
@@ -77,8 +77,8 @@ public class TaskServiceImpl implements TaskService {
   @Transactional
   public TaskDto updateTask(Long taskId, TaskRequest request) {
     Task task = getTask(taskId);
-
-    isUserOwnerOfThisTask(taskId);
+    User currentUser = getCurrentUser();
+    isUserOwnerOfThisTask(taskId, currentUser);
 
     // Remove existing attachments
     Set<FileAttachment> oldAttachments = new HashSet<>(task.getAttachments());
@@ -95,31 +95,25 @@ public class TaskServiceImpl implements TaskService {
   }
 
   @Override
-  @Transactional
   public void deleteTask(Long taskId) {
     Task task = getTask(taskId);
+    User currentUser = getCurrentUser();
+    isUserOwnerOfThisTask(taskId, currentUser);
+    currentUser.getTasks().remove(task);
 
-    isUserOwnerOfThisTask(taskId);
-
-    Set<FileAttachment> attachments = task.getAttachments();
-//    task.setUser(null);
-//    task.getAttachments().clear();
-    log.info("before delete task {}", task.getId());
-//    fileRepository.deleteAll(attachments);
     taskRepository.deleteById(taskId);
-    taskRepository.flush();
-    log.info("after delete task {}", task.getId());
   }
 
   @Override
   public List<byte[]> getFileAttachmentsByTask(Long taskId) {
     Task task = getTask(taskId);
-    isUserOwnerOfThisTask(taskId);
+    User currentUser = getCurrentUser();
+    isUserOwnerOfThisTask(taskId, currentUser);
     return task.getAttachments().stream().map(FileAttachment::getData).collect(Collectors.toList());
   }
 
-  private void isUserOwnerOfThisTask(Long taskId) {
-    User currentUser = getCurrentUser();
+  private void isUserOwnerOfThisTask(Long taskId, User currentUser) {
+
     boolean taskBelongsToCurrentUser =
         currentUser.getTasks().stream().anyMatch(task -> task.getId().equals(taskId));
     if (!taskBelongsToCurrentUser) {
