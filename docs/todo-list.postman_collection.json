@@ -1,0 +1,300 @@
+{
+	"info": {
+		"_postman_id": "d583aef4-eb51-439a-a655-eb8f6d59596d",
+		"name": "todo-list",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37301849"
+	},
+	"item": [
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "{{username}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "{{password}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logout",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"admin2\",\r\n    \"password\":\"password\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/user/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"user",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Task",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "title",
+							"value": "Complete test task",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "DEVELOP REST API SPRING FOR TO-DO LIST WITH USER REGISTRATION:\n-NEW USER REGISTRATION\n-USER AUTHORIZATION\n-POSSIBILITY TO ADD, VIEW, CHANGE, DELETE A TASK IN THE TO-DO LIST\n-POSSIBILITY OF CREATING TASKS WITH ATTACHED FILES",
+							"type": "text"
+						},
+						{
+							"key": "dueDate",
+							"value": "2024-09-16T11:55:23",
+							"type": "text"
+						},
+						{
+							"key": "attachments",
+							"type": "file",
+							"src": [
+								"postman-cloud:///1ef5d359-102e-42b0-8d65-f6f076d114f1",
+								"postman-cloud:///1ef4e861-b603-49d0-80d2-b368e3cacb9d"
+							]
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/task",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"task"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Task",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "title",
+							"value": "Complete test task upd",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "DEVELOP REST API SPRING FOR TO-DO LIST WITH USER REGISTRATION:\n-NEW USER REGISTRATION\n-USER AUTHORIZATION\n-POSSIBILITY TO ADD, VIEW, CHANGE, DELETE A TASK IN THE TO-DO LIST\n-POSSIBILITY OF CREATING TASKS WITH ATTACHED FILES",
+							"type": "text"
+						},
+						{
+							"key": "dueDate",
+							"value": "2024-09-16T11:55:23",
+							"type": "text"
+						},
+						{
+							"key": "attachments",
+							"type": "file",
+							"src": [
+								"postman-cloud:///1ef5d359-102e-42b0-8d65-f6f076d114f1",
+								"postman-cloud:///1ef4e861-b603-49d0-80d2-b368e3cacb9d"
+							],
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/task/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"task",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All User's Tasks (To-Do List)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/task?completed=true&dueDateBefore=2024-09-27T00:00:00",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"task"
+					],
+					"query": [
+						{
+							"key": "completed",
+							"value": "true"
+						},
+						{
+							"key": "dueDate",
+							"value": "2024-09-16T00:00:00",
+							"disabled": true
+						},
+						{
+							"key": "dueDateBefore",
+							"value": "2024-09-27T00:00:00"
+						},
+						{
+							"key": "dueDateFrom",
+							"value": "2024-09-16T00:00:00",
+							"disabled": true
+						},
+						{
+							"key": "dueDateTo",
+							"value": "2024-09-19T00:00:00",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User's Task By Id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/task/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"task",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Task",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/task/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"task",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Task Attachments Files",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/task/1/attachment",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"task",
+						"1",
+						"attachment"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
