@@ -194,7 +194,7 @@ public class TaskServiceImplTest {
       when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(user));
       when(taskRepository.findById(1L)).thenReturn(Optional.of(existingTask));
       when(taskRepository.save(any(Task.class))).thenReturn(updatedTask);
-      when(fileRepository.saveAll(any(Set.class))).thenReturn(List.of(fileAttachment));
+      when(fileRepository.saveAll(any())).thenReturn(List.of(fileAttachment));
 
       // Act
       TaskDto result = taskService.updateTask(1L, updateRequest);
@@ -204,8 +204,8 @@ public class TaskServiceImplTest {
       assertEquals(taskDto.id(), result.id());
       assertEquals(taskDto.title(), result.title());
       verify(taskRepository).save(any(Task.class));
-      verify(fileRepository).deleteAll(any(Set.class));
-      verify(fileRepository).saveAll(any(Set.class));
+      verify(fileRepository).deleteAll(any());
+      verify(fileRepository).saveAll(any());
     }
 
     @Test
@@ -277,7 +277,7 @@ public class TaskServiceImplTest {
       when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(user));
       when(taskRepository.findById(1L)).thenReturn(Optional.of(existingTask));
       when(taskRepository.save(any(Task.class))).thenReturn(updatedTask);
-      when(fileRepository.saveAll(any(Set.class))).thenReturn(List.of(newFileAttachment));
+      when(fileRepository.saveAll(any())).thenReturn(List.of(newFileAttachment));
       // when(fileRepository.deleteAll(any())).thenReturn(null);
 
       // Act
@@ -288,8 +288,8 @@ public class TaskServiceImplTest {
       assertEquals(taskDto.id(), result.id());
       assertEquals(taskDto.title(), result.title());
       verify(taskRepository).save(any(Task.class));
-      verify(fileRepository).deleteAll(any(Set.class));
-      verify(fileRepository).saveAll(any(Set.class));
+      verify(fileRepository).deleteAll(any());
+      verify(fileRepository).saveAll(any());
     }
   }
 
