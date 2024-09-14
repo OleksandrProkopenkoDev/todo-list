@@ -5,23 +5,26 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import ua.spro.todolist.model.dto.CreateTaskRequest;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ua.spro.todolist.model.dto.RegistrationRequest;
 import ua.spro.todolist.model.dto.TaskDto;
 
@@ -33,55 +36,31 @@ public class TaskControllerIntegrationTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
 
-  private MockHttpSession session;
-
-  @BeforeEach
-  public void setup() throws Exception {
-    // Perform login and store session
-    MvcResult loginResult =
-        mockMvc
-            .perform(post("/login").param("username", "Alice").param("password", "alicepass"))
-            .andExpect(status().is(302))
-            .andReturn();
-
-    session = (MockHttpSession) loginResult.getRequest().getSession(); // Save session
-  }
-
   @Nested
   class GetTasks {
 
     @Test
     public void getTasks_shouldReturnTasks_whenAuthenticated() throws Exception {
+      // Perform login for Alice
+      MockHttpSession aliceSession = loginUser("Alice", "alicepass");
       // Act: Call the 'getTasks' endpoint using the session
       MvcResult result =
           mockMvc
               .perform(
                   get("/api/task")
-                      .session(session) // Use the authenticated session
+                      .session(aliceSession) // Use the authenticated session
                       .contentType(MediaType.APPLICATION_JSON))
               .andExpect(status().isOk())
               .andReturn();
 
-      // Print response to console before assertions
-      String responseContent = result.getResponse().getContentAsString();
-      System.out.println("Response: " + responseContent);
-
-      // Now make assertions (this will depend on the expected response)
-      // For example, you could parse the response as a list of tasks
-      assertEquals(200, result.getResponse().getStatus()); // Check HTTP status code
-      assertEquals("application/json", result.getResponse().getContentType()); // Check content type
+      assertEquals(200, result.getResponse().getStatus());
+      assertEquals("application/json", result.getResponse().getContentType());
     }
 
     @Test
     public void getTasksForBob_shouldReturnTasks_whenAuthenticated() throws Exception {
       // Perform login for Bob
-      MvcResult loginResult =
-          mockMvc
-              .perform(post("/login").param("username", "Bob").param("password", "bobpass"))
-              .andExpect(status().is(302))
-              .andReturn();
-
-      MockHttpSession bobSession = (MockHttpSession) loginResult.getRequest().getSession();
+      MockHttpSession bobSession = loginUser("Bob", "bobpass");
 
       MvcResult result =
           mockMvc
@@ -93,7 +72,6 @@ public class TaskControllerIntegrationTest {
               .andReturn();
 
       String responseContent = result.getResponse().getContentAsString();
-      System.out.println("Response: " + responseContent);
 
       assertEquals(200, result.getResponse().getStatus());
       assertEquals("application/json", result.getResponse().getContentType());
@@ -106,29 +84,20 @@ public class TaskControllerIntegrationTest {
     @Test
     public void getTasksForAdmin_shouldReturnTasks_whenAuthenticated() throws Exception {
       // Perform login for Admin
-      MvcResult loginResult =
-          mockMvc
-              .perform(post("/login").param("username", "admin").param("password", "password"))
-              .andExpect(status().is(302))
-              .andReturn();
-
-      MockHttpSession adminSession = (MockHttpSession) loginResult.getRequest().getSession();
+      MockHttpSession adminSession = loginUser("admin", "password");
 
       MvcResult result =
           mockMvc
               .perform(
-                  get("/api/task")
-                      .session(adminSession) // Use admin's session
-                      .contentType(MediaType.APPLICATION_JSON))
+                  get("/api/task").session(adminSession).contentType(MediaType.APPLICATION_JSON))
               .andExpect(status().isOk())
               .andReturn();
 
       String responseContent = result.getResponse().getContentAsString();
-      System.out.println("Response: " + responseContent);
 
       assertEquals(200, result.getResponse().getStatus());
       assertEquals("application/json", result.getResponse().getContentType());
-      // Additional assertion: check if Admin's tasks are returned
+
       assertTrue(responseContent.contains("Admin - Project Planning"));
       assertTrue(responseContent.contains("Admin - Budget Review"));
     }
@@ -141,77 +110,38 @@ public class TaskControllerIntegrationTest {
               .andExpect(status().isUnauthorized())
               .andReturn();
 
-      assertEquals(401, result.getResponse().getStatus()); // Check HTTP status code
+      assertEquals(401, result.getResponse().getStatus());
     }
 
     @Test
     public void getTasksForNewUser_shouldReturnEmptyList_whenNoTasksAssigned() throws Exception {
-      // Register a user (if necessary for session-based auth)
-      RegistrationRequest registrationRequest = new RegistrationRequest("newuser", "newuserpass");
-      String registrationBody = objectMapper.writeValueAsString(registrationRequest);
-
-      MvcResult registrationResult =
-          mockMvc
-              .perform(
-                  post("/api/user/register")
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(registrationBody))
-              .andExpect(status().isOk())
-              .andReturn();
+      // Register a user
+      registerUser("newuser", "newuserpass");
 
       // Perform login for a new user (e.g., a newly registered user without any tasks)
-      MvcResult loginResult =
-          mockMvc
-              .perform(post("/login").param("username", "newuser").param("password", "newuserpass"))
-              .andExpect(status().is(302))
-              .andReturn();
-
-      MockHttpSession newUserSession = (MockHttpSession) loginResult.getRequest().getSession();
+      MockHttpSession newUserSession = loginUser("newuser", "newuserpass");
 
       MvcResult result =
           mockMvc
               .perform(
-                  get("/api/task")
-                      .session(newUserSession) // Use new user's session
-                      .contentType(MediaType.APPLICATION_JSON))
+                  get("/api/task").session(newUserSession).contentType(MediaType.APPLICATION_JSON))
               .andExpect(status().isOk())
               .andReturn();
 
       String responseContent = result.getResponse().getContentAsString();
-      System.out.println("Response: " + responseContent);
 
       assertEquals(200, result.getResponse().getStatus());
       assertEquals("application/json", result.getResponse().getContentType());
       // Assert that the response content is an empty array
-      assertEquals("[]", responseContent); // Change to check for empty JSON array
+      assertEquals("[]", responseContent);
     }
 
     @Test
     public void getTasksForAlice_shouldReturnCompletedTasks_whenCompletedFilterApplied()
         throws Exception {
-      // Register Alice and create tasks for her
-      RegistrationRequest aliceRegistrationRequest = new RegistrationRequest("alice", "alicepass");
-      String aliceRegistrationBody = objectMapper.writeValueAsString(aliceRegistrationRequest);
-
-      mockMvc
-          .perform(
-              post("/api/user/register")
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(aliceRegistrationBody))
-          .andExpect(status().isOk());
-
+      //      registerUser("alice", "alicepass");
       // Perform login for Alice
-      MvcResult loginResult =
-          mockMvc
-              .perform(post("/login").param("username", "alice").param("password", "alicepass"))
-              .andExpect(status().is(302))
-              .andReturn();
-
-      MockHttpSession aliceSession = (MockHttpSession) loginResult.getRequest().getSession();
-
-      // Create completed tasks for Alice
-      // Assuming tasks are created through a method or endpoint in your application
-      // Create tasks with different 'completed' statuses here
+      MockHttpSession aliceSession = loginUser("Alice", "alicepass");
 
       // Fetch completed tasks
       MvcResult result =
@@ -224,42 +154,17 @@ public class TaskControllerIntegrationTest {
               .andExpect(status().isOk())
               .andReturn();
 
-      String responseContent = result.getResponse().getContentAsString();
-      System.out.println("Response: " + responseContent);
-
       // Check if response contains only completed tasks
-      // Here, you can parse responseContent and verify the tasks' statuses
       assertEquals(200, result.getResponse().getStatus());
       assertEquals("application/json", result.getResponse().getContentType());
-      // Add more specific assertions based on your tasks' expected data
     }
 
     @Test
     public void getTasksForBob_shouldReturnTasksDueBeforeDate_whenDueDateBeforeFilterApplied()
         throws Exception {
-      // Register Bob and create tasks for him
-      RegistrationRequest bobRegistrationRequest = new RegistrationRequest("bob", "bobpass");
-      String bobRegistrationBody = objectMapper.writeValueAsString(bobRegistrationRequest);
-
-      mockMvc
-          .perform(
-              post("/api/user/register")
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(bobRegistrationBody))
-          .andExpect(status().isOk());
-
+      //      registerUser("Bob", "bobpass");
       // Perform login for Bob
-      MvcResult loginResult =
-          mockMvc
-              .perform(post("/login").param("username", "bob").param("password", "bobpass"))
-              .andExpect(status().is(302))
-              .andReturn();
-
-      MockHttpSession bobSession = (MockHttpSession) loginResult.getRequest().getSession();
-
-      // Create tasks with various due dates for Bob
-      // Assuming tasks are created through a method or endpoint in your application
-      // Create tasks with different due dates here
+      MockHttpSession bobSession = loginUser("Bob", "bobpass");
 
       // Fetch tasks with dueDate before a certain date
       MvcResult result =
@@ -272,188 +177,213 @@ public class TaskControllerIntegrationTest {
               .andExpect(status().isOk())
               .andReturn();
 
-      String responseContent = result.getResponse().getContentAsString();
-      System.out.println("Response: " + responseContent);
-
       // Check if response contains tasks with due dates before the specified date
-      // Here, you can parse responseContent and verify the tasks' due dates
       assertEquals(200, result.getResponse().getStatus());
       assertEquals("application/json", result.getResponse().getContentType());
-      // Add more specific assertions based on your tasks' expected data
     }
   }
 
-  @Nested
-  class CreateTask {
-    @Test
-    public void createTask_shouldReturnCreatedTask_whenValidDataProvided() throws Exception {
-      // Register and login user
-      RegistrationRequest registrationRequest = new RegistrationRequest("user", "userpass");
-      String registrationBody = objectMapper.writeValueAsString(registrationRequest);
+  @Test
+  public void createTask_shouldReturnCreatedTask_whenValidDataProvided() throws Exception {
+    // Register and login user
+    registerUser("user", "userpass");
 
-      mockMvc
-          .perform(
-              post("/api/user/register")
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(registrationBody))
-          .andExpect(status().isOk());
+    MvcResult loginResult =
+        mockMvc
+            .perform(post("/login").param("username", "user").param("password", "userpass"))
+            .andExpect(status().is(302))
+            .andReturn();
 
-      MvcResult loginResult =
-          mockMvc
-              .perform(post("/login").param("username", "user").param("password", "userpass"))
-              .andExpect(status().is(302))
-              .andReturn();
+    MockHttpSession userSession = (MockHttpSession) loginResult.getRequest().getSession();
 
-      MockHttpSession userSession = (MockHttpSession) loginResult.getRequest().getSession();
+    // For file attachments
+    MockMultipartFile attachment1 =
+        new MockMultipartFile(
+            "attachments",
+            "attachment1.txt",
+            "text/plain",
+            "Attachment content 1".getBytes(StandardCharsets.UTF_8));
+    MockMultipartFile attachment2 =
+        new MockMultipartFile(
+            "attachments",
+            "attachment2.txt",
+            "text/plain",
+            "Attachment content 2".getBytes(StandardCharsets.UTF_8));
 
-      // Create a new task
-      CreateTaskRequest taskRequest =
-          new CreateTaskRequest(
-              "Task Title", "Task Description", LocalDateTime.now().plusDays(1), false, null);
-      String taskRequestBody = objectMapper.writeValueAsString(taskRequest);
+    // Create a new task with form-data (string params and file attachments)
+    assert userSession != null;
+    MvcResult result =
+        mockMvc
+            .perform(
+                multipart("/api/task")
+                    .file(attachment1)
+                    .file(attachment2)
+                    .param("title", "Task Title")
+                    .param("description", "Task Description")
+                    .param("dueDate", LocalDateTime.now().plusDays(1).toString())
+                    .param("completed", "false")
+                    .session(userSession)
+                    .contentType(MediaType.MULTIPART_FORM_DATA))
+            .andExpect(status().isCreated())
+            .andReturn();
 
-      MvcResult result =
-          mockMvc
-              .perform(
-                  post("/api/task")
-                      .session(userSession)
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(taskRequestBody))
-              .andExpect(status().isCreated())
-              .andReturn();
+    String responseContent = result.getResponse().getContentAsString();
 
-      String responseContent = result.getResponse().getContentAsString();
-      System.out.println("Response: " + responseContent);
+    // Check the response
+    assertEquals(201, result.getResponse().getStatus());
+    assertEquals("application/json", result.getResponse().getContentType());
 
-      // Check the response
-      assertEquals(201, result.getResponse().getStatus());
-      assertEquals("application/json", result.getResponse().getContentType());
+    TaskDto createdTask = objectMapper.readValue(responseContent, TaskDto.class);
+    assertNotNull(createdTask.id()); // Ensure the task ID is generated
+    assertEquals("Task Title", createdTask.title());
+    assertEquals("Task Description", createdTask.description());
+    assertFalse(createdTask.completed());
+  }
 
-      TaskDto createdTask = objectMapper.readValue(responseContent, TaskDto.class);
-      assertNotNull(createdTask.id()); // Ensure the task ID is generated
-      assertEquals("Task Title", createdTask.title());
-      assertEquals("Task Description", createdTask.description());
-      assertFalse(createdTask.completed());
-    }
+  @Test
+  public void updateTask_shouldReturnUpdatedTask_whenValidDataProvided() throws Exception {
+    // Register and login user
+    registerUser("user", "userpass");
 
-    @Test
-    public void createTask_shouldReturnBadRequest_whenRequiredFieldsMissing() throws Exception {
-      // Register and login user
-      RegistrationRequest registrationRequest = new RegistrationRequest("user", "userpass");
-      String registrationBody = objectMapper.writeValueAsString(registrationRequest);
+    MvcResult loginResult =
+        mockMvc
+            .perform(post("/login").param("username", "user").param("password", "userpass"))
+            .andExpect(status().is(302))
+            .andReturn();
 
-      mockMvc
-          .perform(
-              post("/api/user/register")
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(registrationBody))
-          .andExpect(status().isOk());
+    MockHttpSession userSession = (MockHttpSession) loginResult.getRequest().getSession();
 
-      MvcResult loginResult =
-          mockMvc
-              .perform(post("/login").param("username", "user").param("password", "userpass"))
-              .andExpect(status().is(302))
-              .andReturn();
+    assert userSession != null;
+    MvcResult createResult =
+        mockMvc
+            .perform(
+                multipart("/api/task")
+                    .file(
+                        new MockMultipartFile(
+                            "attachments",
+                            "initialAttachment.txt",
+                            "text/plain",
+                            "Initial content".getBytes(StandardCharsets.UTF_8)))
+                    .param("title", "Initial Title")
+                    .param("description", "Initial Description")
+                    .param("dueDate", LocalDateTime.now().plusDays(1).toString())
+                    .param("completed", "false")
+                    .session(userSession)
+                    .contentType(MediaType.MULTIPART_FORM_DATA))
+            .andExpect(status().isCreated())
+            .andReturn();
 
-      MockHttpSession userSession = (MockHttpSession) loginResult.getRequest().getSession();
+    String createResponseContent = createResult.getResponse().getContentAsString();
+    TaskDto createdTask = objectMapper.readValue(createResponseContent, TaskDto.class);
 
-      // Create a new task with missing fields
-      CreateTaskRequest taskRequest =
-          new CreateTaskRequest(null, null, null, false, null); // Invalid request
-      String taskRequestBody = objectMapper.writeValueAsString(taskRequest);
+    // For file attachments
+    MockMultipartFile updatedAttachment =
+        new MockMultipartFile(
+            "attachments",
+            "updatedAttachment.txt",
+            "text/plain",
+            "Updated content".getBytes(StandardCharsets.UTF_8));
 
-      MvcResult result =
-          mockMvc
-              .perform(
-                  post("/api/task")
-                      .session(userSession)
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(taskRequestBody))
-              .andExpect(status().isBadRequest())
-              .andReturn();
+    // Update the task
+    MvcResult updateResult =
+        mockMvc
+            .perform(
+                multipart("/api/task/{taskId}", createdTask.id())
+                    .file(updatedAttachment)
+                    .param("title", "Updated Title")
+                    .param("description", "Updated Description")
+                    .param("dueDate", LocalDateTime.now().plusDays(2).toString())
+                    .param("completed", "true")
+                    .session(userSession)
+                    .with(
+                        request -> {
+                          request.setMethod(HttpMethod.PUT.name());
+                          return request;
+                        })
+                    .contentType(MediaType.MULTIPART_FORM_DATA))
+            .andExpect(status().isOk())
+            .andReturn();
 
-      String responseContent = result.getResponse().getContentAsString();
-      System.out.println("Response: " + responseContent);
+    String updateResponseContent = updateResult.getResponse().getContentAsString();
 
-      // Check the response
-      assertEquals(400, result.getResponse().getStatus());
-      assertEquals("application/json", result.getResponse().getContentType());
-      // Additional assertions can be added based on the error message format
-    }
+    // Check the response
+    assertEquals(200, updateResult.getResponse().getStatus());
+    assertEquals("application/json", updateResult.getResponse().getContentType());
 
-    @Test
-    public void createTask_shouldReturnBadRequest_whenInvalidDateFormatProvided() throws Exception {
-      // Register and login user
-      RegistrationRequest registrationRequest = new RegistrationRequest("user", "userpass");
-      String registrationBody = objectMapper.writeValueAsString(registrationRequest);
+    TaskDto updatedTask = objectMapper.readValue(updateResponseContent, TaskDto.class);
+    assertNotNull(updatedTask.id()); // Ensure the task ID is preserved
+    assertEquals("Updated Title", updatedTask.title());
+    assertEquals("Updated Description", updatedTask.description());
+    assertTrue(updatedTask.completed());
+  }
 
-      mockMvc
-          .perform(
-              post("/api/user/register")
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(registrationBody))
-          .andExpect(status().isOk());
+  @Test
+  public void deleteTask_shouldReturnNoContent_whenTaskDeleted() throws Exception {
+    registerUser("user", "userpass");
 
-      MvcResult loginResult =
-          mockMvc
-              .perform(post("/login").param("username", "user").param("password", "userpass"))
-              .andExpect(status().is(302))
-              .andReturn();
+    MvcResult loginResult =
+        mockMvc
+            .perform(post("/login").param("username", "user").param("password", "userpass"))
+            .andExpect(status().is(302))
+            .andReturn();
 
-      MockHttpSession userSession = (MockHttpSession) loginResult.getRequest().getSession();
+    MockHttpSession userSession = (MockHttpSession) loginResult.getRequest().getSession();
 
-      // Create a new task with an invalid date format
-      CreateTaskRequest taskRequest =
-          new CreateTaskRequest(
-              "Task Title",
-              "Task Description",
-              LocalDateTime.parse("invalid-date-format"),
-              false,
-              null);
-      String taskRequestBody = objectMapper.writeValueAsString(taskRequest);
+    assert userSession != null;
+    MvcResult createResult =
+        mockMvc
+            .perform(
+                multipart("/api/task")
+                    .file(
+                        new MockMultipartFile(
+                            "attachments",
+                            "attachment.txt",
+                            "text/plain",
+                            "Attachment content".getBytes(StandardCharsets.UTF_8)))
+                    .param("title", "Task Title")
+                    .param("description", "Task Description")
+                    .param("dueDate", LocalDateTime.now().plusDays(1).toString())
+                    .param("completed", "false")
+                    .session(userSession)
+                    .contentType(MediaType.MULTIPART_FORM_DATA))
+            .andExpect(status().isCreated())
+            .andReturn();
 
-      MvcResult result =
-          mockMvc
-              .perform(
-                  post("/api/task")
-                      .session(userSession)
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(taskRequestBody))
-              .andExpect(status().isBadRequest())
-              .andReturn();
+    String createResponseContent = createResult.getResponse().getContentAsString();
+    TaskDto createdTask = objectMapper.readValue(createResponseContent, TaskDto.class);
 
-      String responseContent = result.getResponse().getContentAsString();
-      System.out.println("Response: " + responseContent);
+    // Delete the task
+    MvcResult deleteResult =
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders.delete("/api/task/{taskId}", createdTask.id())
+                    .session(userSession))
+            .andExpect(status().isNoContent())
+            .andReturn();
 
-      // Check the response
-      assertEquals(400, result.getResponse().getStatus());
-      assertEquals("application/json", result.getResponse().getContentType());
-      // Additional assertions can be added based on the error message format
-    }
+    // Verify response
+    assertEquals(204, deleteResult.getResponse().getStatus()); // No Content status
+  }
 
-    @Test
-    public void createTask_shouldReturnUnauthorized_whenUserNotAuthenticated() throws Exception {
-      // Create a new task without authentication
-      CreateTaskRequest taskRequest =
-          new CreateTaskRequest(
-              "Task Title", "Task Description", LocalDateTime.now().plusDays(1), false, null);
-      String taskRequestBody = objectMapper.writeValueAsString(taskRequest);
+  private MockHttpSession loginUser(String username, String password) throws Exception {
+    return (MockHttpSession)
+        mockMvc
+            .perform(post("/login").param("username", username).param("password", password))
+            .andExpect(status().is(302))
+            .andReturn()
+            .getRequest()
+            .getSession();
+  }
 
-      MvcResult result =
-          mockMvc
-              .perform(
-                  post("/api/task")
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(taskRequestBody))
-              .andExpect(status().isUnauthorized())
-              .andReturn();
+  private void registerUser(String username, String password) throws Exception {
+    RegistrationRequest registrationRequest = new RegistrationRequest(username, password);
+    String registrationBody = objectMapper.writeValueAsString(registrationRequest);
 
-      String responseContent = result.getResponse().getContentAsString();
-      System.out.println("Response: " + responseContent);
-
-      // Check the response
-      assertEquals(401, result.getResponse().getStatus());
-      assertEquals("application/json", result.getResponse().getContentType());
-    }
+    mockMvc
+        .perform(
+            post("/api/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(registrationBody))
+        .andExpect(status().isOk());
   }
 }
