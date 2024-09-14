@@ -101,7 +101,7 @@ public class TaskServiceImpl implements TaskService {
     isUserOwnerOfThisTask(taskId, currentUser);
     currentUser.getTasks().remove(task);
 
-    taskRepository.deleteById(taskId);
+    taskRepository.delete(task);
   }
 
   @Override
