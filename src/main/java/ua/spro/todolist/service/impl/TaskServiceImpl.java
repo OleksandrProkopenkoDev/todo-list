@@ -101,7 +101,14 @@ public class TaskServiceImpl implements TaskService {
 
     isUserOwnerOfThisTask(taskId);
 
-    taskRepository.delete(task);
+    Set<FileAttachment> attachments = task.getAttachments();
+//    task.setUser(null);
+//    task.getAttachments().clear();
+    log.info("before delete task {}", task.getId());
+//    fileRepository.deleteAll(attachments);
+    taskRepository.deleteById(taskId);
+    taskRepository.flush();
+    log.info("after delete task {}", task.getId());
   }
 
   @Override
