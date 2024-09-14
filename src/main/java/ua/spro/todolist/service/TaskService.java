@@ -18,4 +18,6 @@ public interface TaskService {
   void deleteTask(Long taskId);
 
   List<byte[]> getFileAttachmentsByTask(Long taskId);
+
+  TaskDto getTaskById(Long taskId);
 }

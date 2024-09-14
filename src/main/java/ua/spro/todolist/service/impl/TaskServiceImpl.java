@@ -53,6 +53,15 @@ public class TaskServiceImpl implements TaskService {
   }
 
   @Override
+  public TaskDto getTaskById(Long taskId) {
+    Task task = getTask(taskId);
+
+    isUserOwnerOfThisTask(taskId);
+
+    return TaskMapper.toDto(task);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public Set<TaskDto> viewTasksWithFilters(Map<String, String> params) {
     User currentUser = getCurrentUser(); // Fetch current logged-in user

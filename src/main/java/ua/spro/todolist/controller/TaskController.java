@@ -1,5 +1,6 @@
 package ua.spro.todolist.controller;
 
+import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ua.spro.todolist.model.dto.CreateTaskRequest;
 import ua.spro.todolist.model.dto.TaskDto;
 import ua.spro.todolist.model.dto.UpdateTaskRequest;
@@ -26,8 +28,20 @@ public class TaskController {
   private final TaskService taskService;
 
   @PostMapping
-  public TaskDto createTask(@ModelAttribute CreateTaskRequest taskDto) {
-    return taskService.createTask(taskDto);
+  public ResponseEntity<TaskDto> createTask(@ModelAttribute CreateTaskRequest taskRequest) {
+    TaskDto createdTask = taskService.createTask(taskRequest);
+
+    URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+        .path("/api/task/{id}")
+        .buildAndExpand(createdTask.id())
+        .toUri();
+
+    return ResponseEntity.created(location).body(createdTask);
+  }
+
+  @GetMapping("/{taskId}")
+  public TaskDto getTask(@PathVariable Long taskId) {
+    return taskService.getTaskById(taskId);
   }
 
   @GetMapping
