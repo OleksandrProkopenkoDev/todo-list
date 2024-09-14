@@ -3,13 +3,13 @@ package ua.spro.todolist.mapper;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import ua.spro.todolist.model.dto.CreateTaskRequest;
+import ua.spro.todolist.model.dto.TaskRequest;
 import ua.spro.todolist.model.dto.TaskDto;
 import ua.spro.todolist.model.entity.Task;
 
 public class TaskMapper {
 
-  public static Task toEntity(CreateTaskRequest request) {
+  public static Task toEntity(TaskRequest request) {
     return Task.builder()
         .title(request.title())
         .description(request.description())

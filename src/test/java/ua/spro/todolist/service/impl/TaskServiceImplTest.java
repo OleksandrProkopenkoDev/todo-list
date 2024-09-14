@@ -22,10 +22,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.multipart.MultipartFile;
-import ua.spro.todolist.model.dto.CreateTaskRequest;
+import ua.spro.todolist.model.dto.TaskRequest;
 import ua.spro.todolist.model.dto.FileAttachmentDto;
 import ua.spro.todolist.model.dto.TaskDto;
-import ua.spro.todolist.model.dto.UpdateTaskRequest;
 import ua.spro.todolist.model.entity.FileAttachment;
 import ua.spro.todolist.model.entity.Task;
 import ua.spro.todolist.model.entity.User;
@@ -61,8 +60,8 @@ public class TaskServiceImplTest {
     @Test
     public void createTask_shouldCreateTask_whenValidRequest() {
       // Arrange
-      CreateTaskRequest createTaskRequest =
-          new CreateTaskRequest("Task Title", "Task Description", null, false, null);
+      TaskRequest createTaskRequest =
+          new TaskRequest("Task Title", "Task Description", null, false, null);
       User user = new User(1L, "testUser", "password", new HashSet<>());
 
       Task savedTask =
@@ -84,8 +83,8 @@ public class TaskServiceImplTest {
 
     @Test
     public void createTask_shouldThrowException_whenUserNotFound() {
-      CreateTaskRequest createTaskRequest =
-          new CreateTaskRequest("Task Title", "Task Description", null, false, null);
+      TaskRequest createTaskRequest =
+          new TaskRequest("Task Title", "Task Description", null, false, null);
 
       when(userRepository.findByUsername("testUser")).thenReturn(Optional.empty());
 
@@ -99,8 +98,8 @@ public class TaskServiceImplTest {
       MultipartFile file = mock(MultipartFile.class);
       when(file.getBytes()).thenThrow(new IOException("File read error"));
 
-      CreateTaskRequest createTaskRequest =
-          new CreateTaskRequest("Task Title", "Task Description", null, false, Set.of(file));
+      TaskRequest createTaskRequest =
+          new TaskRequest("Task Title", "Task Description", null, false, Set.of(file));
       User user = new User(1L, "testUser", "password", new HashSet<>());
 
       when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(user));
@@ -111,7 +110,7 @@ public class TaskServiceImplTest {
     }
 
     @Test
-    public void createTask_shouldThrowException_whenCreateTaskRequestIsNull() {
+    public void createTask_shouldThrowException_whenUpdateTaskRequestIsNull() {
       assertThrows(RuntimeException.class, () -> taskService.createTask(null));
     }
   }
@@ -183,8 +182,8 @@ public class TaskServiceImplTest {
       FileAttachmentDto fileAttachmentDto =
           new FileAttachmentDto(1L, "file.pdf", "application/pdf");
 
-      UpdateTaskRequest updateRequest =
-          new UpdateTaskRequest(
+      TaskRequest updateRequest =
+          new TaskRequest(
               "New Title", "New Description", null, true, Set.of(mock(MultipartFile.class)));
 
       Task updatedTask =
@@ -215,8 +214,8 @@ public class TaskServiceImplTest {
       User anotherUser = new User(2L, "anotherUser", "password", new HashSet<>());
       Task existingTask =
           new Task(1L, "Old Title", "Old Description", null, false, anotherUser, new HashSet<>());
-      UpdateTaskRequest updateRequest =
-          new UpdateTaskRequest(
+      TaskRequest updateRequest =
+          new TaskRequest(
               "New Title", "New Description", null, true, Set.of(mock(MultipartFile.class)));
 
       when(userRepository.findByUsername("testUser"))
@@ -236,8 +235,8 @@ public class TaskServiceImplTest {
     @Test
     public void updateTask_shouldThrowRuntimeException_whenTaskNotFound() {
       // Arrange
-      UpdateTaskRequest updateRequest =
-          new UpdateTaskRequest(
+      TaskRequest updateRequest =
+          new TaskRequest(
               "New Title", "New Description", null, true, Set.of(mock(MultipartFile.class)));
 
       when(taskRepository.findById(1L)).thenReturn(Optional.empty());
@@ -261,8 +260,8 @@ public class TaskServiceImplTest {
       when(newAttachmentFile.getBytes()).thenReturn(new byte[] {4, 5, 6});
       when(newAttachmentFile.getContentType()).thenReturn("application/pdf");
       when(newAttachmentFile.getOriginalFilename()).thenReturn("new-file.pdf");
-      UpdateTaskRequest updateRequest =
-          new UpdateTaskRequest(
+      TaskRequest updateRequest =
+          new TaskRequest(
               "New Title", "New Description", null, true, Set.of(newAttachmentFile));
 
       FileAttachment newFileAttachment =

@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import org.springframework.web.multipart.MultipartFile;
 
-public record CreateTaskRequest (
+public record TaskRequest(
     String title,
     String description,
     LocalDateTime dueDate,
-    boolean completed,
+    Boolean completed,
     Set<MultipartFile> attachments
 ) {}

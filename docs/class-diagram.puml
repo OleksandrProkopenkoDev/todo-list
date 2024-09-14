@@ -28,12 +28,14 @@ package "Entities" {
 }
 
 package "DTOs" {
-  class UserDTO {
+  class UserDto {
+    Long id
     String username
     String password
   }
 
-  class TaskDTO {
+  class TaskDto {
+    Long id
     String title
     String description
     LocalDateTime dueDate
@@ -41,60 +43,66 @@ package "DTOs" {
     Set<FileAttachmentDTO> attachments
   }
 
-  class FileAttachmentDTO {
+  class FileAttachmentDto {
+    Long id
     String fileName
-    byte[] data
     String contentType
   }
+
+  class RegistrationRequest{
+    String username
+    String password
+   }
+
+   class TaskRequest{
+      String title,
+      String description,
+      LocalDateTime dueDate,
+      Boolean completed,
+      Set<MultipartFile> attachments
+   }
 }
 
 package "Controllers" {
   class UserController {
-    + registerUser(UserDTO user)
-    + loginUser()
+    + registerUser(RegistrationRequest request)
   }
 
   class TaskController {
     + createTask(TaskDTO task)
-    + viewTasks()
-    + updateTask(Long taskId, TaskDTO task)
+    + getTaskById(Long taskId))
+    + viewTasks(Map<String, String> params)
+    + updateTask(Long taskId, UpdateTaskRequest task)
     + deleteTask(Long taskId)
   }
 }
 
 package "Services" {
   class UserService {
-    + register(UserDTO user)
-    + findUserByUsername(String username)
+    + registerNewUser(RegistrationRequest request))
   }
 
   class TaskService {
-    + createTask(TaskDTO task)
-    + findTasksByUser()
-    + updateTask(Long taskId, TaskDTO task)
-    + deleteTask(Long taskId)
+  + createTask(CreateTaskRequest taskDto);
+  + viewTasksWithFilters(Map<String, String> params);
+  + updateTask(Long taskId, UpdateTaskRequest request);
+  + deleteTask(Long taskId);
+  + getFileAttachmentsByTask(Long taskId);
+  + getTaskById(Long taskId);
   }
 
-  class FileService {
-    + uploadFile(FileAttachmentDTO file)
-    + downloadFile(Long fileId)
-  }
 }
 
 package "Repositories" {
   class UserRepository {
-    + save(User user)
-    + findByUsername(String username)
+  + existsByUsername(String username);
+  + findByUsername(String username);
   }
 
   class TaskRepository {
-    + save(Task task)
-    + findByUser(User user)
   }
 
   class FileRepository {
-    + save(FileAttachment file)
-    + findByTask(Task task)
   }
 }
 

@@ -17,9 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ua.spro.todolist.mapper.TaskMapper;
-import ua.spro.todolist.model.dto.CreateTaskRequest;
+import ua.spro.todolist.model.dto.TaskRequest;
 import ua.spro.todolist.model.dto.TaskDto;
-import ua.spro.todolist.model.dto.UpdateTaskRequest;
 import ua.spro.todolist.model.entity.FileAttachment;
 import ua.spro.todolist.model.entity.Task;
 import ua.spro.todolist.model.entity.User;
@@ -40,7 +39,7 @@ public class TaskServiceImpl implements TaskService {
 
   @Override
   @Transactional
-  public TaskDto createTask(CreateTaskRequest taskDto) {
+  public TaskDto createTask(TaskRequest taskDto) {
     User currentUser = getCurrentUser(); // Method to get the logged-in user
     Task task = TaskMapper.toEntity(taskDto);
 
@@ -76,7 +75,7 @@ public class TaskServiceImpl implements TaskService {
 
   @Override
   @Transactional
-  public TaskDto updateTask(Long taskId, UpdateTaskRequest request) {
+  public TaskDto updateTask(Long taskId, TaskRequest request) {
     Task task = getTask(taskId);
 
     isUserOwnerOfThisTask(taskId);
@@ -137,7 +136,7 @@ public class TaskServiceImpl implements TaskService {
             () -> new RuntimeException("User not found %s".formatted(userDetails.getUsername())));
   }
 
-  private void updateFromRequest(UpdateTaskRequest request, Task task) {
+  private void updateFromRequest(TaskRequest request, Task task) {
     Set<FileAttachment> fileAttachments = extractFileAttachments(request.attachments(), task);
     task.setAttachments(fileAttachments);
 

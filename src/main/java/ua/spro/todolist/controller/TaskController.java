@@ -15,9 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import ua.spro.todolist.model.dto.CreateTaskRequest;
+import ua.spro.todolist.model.dto.TaskRequest;
 import ua.spro.todolist.model.dto.TaskDto;
-import ua.spro.todolist.model.dto.UpdateTaskRequest;
 import ua.spro.todolist.service.TaskService;
 
 @RestController
@@ -28,7 +27,7 @@ public class TaskController {
   private final TaskService taskService;
 
   @PostMapping
-  public ResponseEntity<TaskDto> createTask(@ModelAttribute CreateTaskRequest taskRequest) {
+  public ResponseEntity<TaskDto> createTask(@ModelAttribute TaskRequest taskRequest) {
     TaskDto createdTask = taskService.createTask(taskRequest);
 
     URI location =
@@ -51,7 +50,7 @@ public class TaskController {
   }
 
   @PutMapping("/{taskId}")
-  public TaskDto updateTask(@PathVariable Long taskId, @ModelAttribute UpdateTaskRequest request) {
+  public TaskDto updateTask(@PathVariable Long taskId, @ModelAttribute TaskRequest request) {
     return taskService.updateTask(taskId, request);
   }
 
