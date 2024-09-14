@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +20,6 @@ import ua.spro.todolist.model.dto.TaskDto;
 import ua.spro.todolist.model.dto.UpdateTaskRequest;
 import ua.spro.todolist.service.TaskService;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/task")
@@ -31,13 +29,13 @@ public class TaskController {
 
   @PostMapping
   public ResponseEntity<TaskDto> createTask(@ModelAttribute CreateTaskRequest taskRequest) {
-    log.info("Creating task: {}", taskRequest);
     TaskDto createdTask = taskService.createTask(taskRequest);
 
-    URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-        .path("/api/task/{id}")
-        .buildAndExpand(createdTask.id())
-        .toUri();
+    URI location =
+        ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/api/task/{id}")
+            .buildAndExpand(createdTask.id())
+            .toUri();
 
     return ResponseEntity.created(location).body(createdTask);
   }
